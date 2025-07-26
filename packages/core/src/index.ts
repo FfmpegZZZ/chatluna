@@ -18,6 +18,7 @@ import { apply as authorsNote } from './llm-core/memory/authors_note'
 import { middleware } from './middleware'
 import { deleteConversationRoom } from 'koishi-plugin-chatluna/chains'
 import { ConversationRoom } from './types'
+import { initBillingDatabase } from './services/billing-database'
 
 export * from './config'
 export * from './render'
@@ -58,6 +59,11 @@ export function apply(ctx: Context, config: Config) {
         await setupServices(ctx, config, disposables)
         await setupPermissions(ctx, disposables)
         await setupEntryPoint(ctx, config, disposables)
+        
+        // 初始化计费数据库
+        if (config.enableBilling) {
+            await initBillingDatabase(ctx)
+        }
     })
 
     ctx.on('dispose', async () => {

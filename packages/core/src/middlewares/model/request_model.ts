@@ -23,6 +23,7 @@ import {
 import { updateChatTime } from '../../chains/rooms'
 import { BufferText } from '../../utils/buffer_text'
 import { v4 as uuidv4 } from 'uuid'
+import { checkUserQuota, deductUserQuota } from '../../services/billing'
 
 let logger: Logger
 
@@ -33,6 +34,18 @@ export function apply(ctx: Context, config: Config, chain: ChatChain) {
     chain
         .middleware('request_model', async (session, context) => {
             const { room, inputMessage } = context.options
+
+            // 如果启用了计费功能，检查用户配额
+            if (config.enableBilling && session?.userId) {
+                const quotaCheck = await checkUserQuota(ctx, session.userId);
+                if (!quotaCheck.allowed) {
+                    // 配额不足，拒绝服务
+                    const error = new Error(quotaCheck.message || '回复次数不足');
+                    throw new ChatLunaError(ChatLunaErrorCode.UNKNOWN_ERROR, error);
+                }
+                // 扣除配额
+                await deductUserQuota(ctx, session.userId);
+            }
 
             const presetTemplate = await ctx.chatluna.preset.getPreset(
                 room.preset

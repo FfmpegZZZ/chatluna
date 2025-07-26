@@ -49,6 +49,9 @@ export interface Config {
     voiceSpeakId: number
 
     enableSimilarityCheck: boolean
+    
+    // 计费相关配置
+    enableBilling: boolean
 }
 
 export const Config: Schema<Config> = Schema.intersect([
@@ -152,7 +155,14 @@ export const Config: Schema<Config> = Schema.intersect([
                 .default([0, 1.0, 'guest'])
         }),
         Schema.object({})
-    ])
+    ]),
+    
+    // 计费配置部分
+    Schema.object({
+        enableBilling: Schema.boolean()
+            .description('是否启用回复次数计费功能')
+            .default(false)
+    })
 ]).i18n({
     'zh-CN': require('./locales/zh-CN.schema'),
     'en-US': require('./locales/en-US.schema')
