@@ -15,7 +15,6 @@ interface MessageQueue {
 }
 
 const queues: Record<string, MessageQueue> = {}
-
 export function apply(ctx: Context, config: Config, chain: ChatChain) {
     logger = createLogger(ctx)
 

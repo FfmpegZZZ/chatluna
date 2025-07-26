@@ -65,15 +65,16 @@ export async function updateUserReplyCount(ctx: Context, userId: string, remaini
 export async function getUserPlanType(ctx: Context, userId: string): Promise<'free' | 'pro' | 'max'> {
   // 检查是否存在其他插件提供的计划服务
   // 使用更安全的方式访问可能不存在的属性
-  if (ctx['planService'] && typeof ctx['planService'].getUserPlan === 'function') {
-    try {
+  try {
+    // 检查服务是否存在
+    if (ctx['planService'] && typeof ctx['planService'].getUserPlan === 'function') {
       const plan = await ctx['planService'].getUserPlan(userId)
       if (plan && (plan === 'free' || plan === 'pro' || plan === 'max')) {
         return plan
       }
-    } catch (error) {
-      ctx.logger.warn('Failed to get user plan from plan service:', error)
     }
+  } catch (error) {
+    ctx.logger.warn('Failed to get user plan from plan service:', error)
   }
   
   // 如果没有其他插件提供计划服务，默认为free

@@ -26,12 +26,13 @@ export * from './types'
 export const name = 'chatluna'
 export const inject = {
     required: ['database'],
-    optional: ['censor', 'vits', 'sst']
+    optional: ['censor', 'vits', 'sst', 'planService']
 }
 export const inject2 = {
     database: { required: true },
     censor: { required: false },
-    vits: { required: false }
+    vits: { required: false },
+    planService: { required: false }
 }
 
 export let logger: Logger

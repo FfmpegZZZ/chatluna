@@ -39,9 +39,16 @@ export function apply(ctx: Context, config: Config, chain: ChatChain) {
             if (config.enableBilling && session?.userId) {
                 const quotaCheck = await checkUserQuota(ctx, session.userId);
                 if (!quotaCheck.allowed) {
-                    // 配额不足，拒绝服务
-                    const error = new Error(quotaCheck.message || '回复次数不足');
-                    throw new ChatLunaError(ChatLunaErrorCode.UNKNOWN_ERROR, error);
+                    // 配额不足，直接向用户发送提示信息
+                    await session.send(quotaCheck.message || '您的回复次数已用完，请升级您的计划或等待次数重置。');
+                    // 确保清理队列，避免堵塞
+                    await context.recallThinkingMessage?.();
+                    // 清理消息队列
+                    setTimeout(() => {
+                        ctx.emit('chatluna/clear-chat-history' as any, room.conversationId);
+                    }, 0);
+                    // 返回停止状态，不再继续处理
+                    return ChainMiddlewareRunStatus.STOP;
                 }
                 // 扣除配额
                 await deductUserQuota(ctx, session.userId);
